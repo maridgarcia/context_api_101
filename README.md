@@ -1,70 +1,112 @@
-# Getting Started with Create React App
+## Checklist REACT CONTEXT API
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+- Criando o context
+    - Criar um pasta <code>context</code> dentro de <code>src</code>
+    - Dentro de <code>context</code>, criar o arquivo <code>Context.js</code>
+    ```
+    // src/context/Context.js
 
-## Available Scripts
+    import { createContext, useContext, useState } from "react";
 
-In the project directory, you can run:
+    export const ThemeContext = createContext();
 
-### `npm start`
+    export const useTheme = () => {
+        return useContext(ThemeContext);
+    }
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+    export const ThemeProvider = ({ children }) => {
+        const [isDarkMode, setDarkMode] = useState(false);
+        const [selectedFont, setFont] = useState("Arial");
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+        const toggleTheme = () => {
+            setDarkMode((prevMode) => !prevMode)
+        }
 
-### `npm test`
+        const changeFont = (font) => {
+            setFont(font)
+        }
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+        return (
+            /* Objetos acessíveis por 
+            todos os componentes 
+            (isDarkMode, toggleTheme, etc...) */
+            <ThemeContext.Provider value={{ 
+                    isDarkMode,
+                    toggleTheme,
+                    selectedFont,
+                    changeFont
+                }}>
+                {children}
+            </ThemeContext.Provider>
+        )
+    };
+    ```
 
-### `npm run build`
+    ```
+    // App.js
+    import { ThemeProvider } from "./context/ThemeContext";
+    import Main from "./components/Main";
+    import "./App.css";
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    function App() {
+        return (
+            /* 
+            O que estiver encapsulado 
+            dentro do ThemeProvider poderá acessar 
+            o contexto da aplicação
+            */
+            <ThemeProvider>
+                <Main />
+            </ThemeProvider>
+        )
+    }
+    export default App;
+    ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    ```
+    // Main.jsx
+    import React from "react";
+    import { useTheme } from "../context/ThemeContext";
+    import FontSelector from "./FontSelector";
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    const Main = () => {
+        const { isDarkMode, toggleTheme } = useTheme()
 
-### `npm run eject`
+        return (
+            <div className={isDarkMode ? "dark-mode" : "light-mode"}>
+                <button onClick={toggleTheme}>Toggle Theme</button>
+                <FontSelector />
+            </div>
+        )
+    }
+    ```
+    ```
+    // FontSelector.jsx
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+    import React from "react";
+    import { useTheme } from "../context/ThemeContext";
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    function FontSelector() {
+        const { selectedFont, changeFont } = useTheme();
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+        const handleFontChange = (event) => {
+            changeFont(event.target.value);
+        };
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+        return (
+            <div>
+            <h2>Selecione uma fonte:</h2>
+            <select value={selectedFont} onChange={handleFontChange}>
+                <option value="Arial">Arial</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Lucida Console">Lucida Console</option>
+            </select>
+            <p style={{ fontFamily: selectedFont }}>
+                Este é um exemplo de texto com a fonte: {selectedFont}
+            </p>
+            </div>
+        );
+    }
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    export default FontSelector;
+    ```
